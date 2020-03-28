@@ -25,6 +25,18 @@ dependencies {
 	}
 }
 
+tasks.register<Copy>("extractUberJar") {
+	dependsOn("build")
+	from(zipTree("$buildDir/libs/${rootProject.name}-$version.jar"))
+	into("build/dependency")
+}
+
+tasks.register<Exec>("buildDockerImage") {
+	dependsOn("extractUberJar")
+	val imageName: String by project
+	commandLine("docker", "build", "-t", imageName, ".")
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
