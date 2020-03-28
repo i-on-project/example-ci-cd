@@ -20,3 +20,7 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: Build docker image
+        run: ./gradlew buildDockerImage -PimageName=the-image-name
+
