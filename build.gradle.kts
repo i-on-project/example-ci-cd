@@ -36,12 +36,11 @@ tasks.register<Copy>("extractUberJar") {
 
 tasks.register<Exec>("buildDockerImage") {
 	dependsOn("extractUberJar")
-	commandLine("docker", "build", "-t", imageName, ".")
+	commandLine("docker", "build", "-t", "$imageName:$tagName", ".")
 }
 
 tasks.register<Exec>("pushDockerImageToGcp") {
 	dependsOn("buildDockerImage")
-	commandLine("docker", "tag", imageName, "$imageName:$tagName")
 	commandLine("docker", "push", "$imageName:$tagName")
 }
 
