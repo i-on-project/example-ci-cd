@@ -26,7 +26,7 @@ jobs:
           service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS}}
 
       # Configure gcloud CLI
-      - name: gcloud Set upgit
+      - name: gcloud set up
         run: |
           gcloud config set project $PROJECT_ID
 
