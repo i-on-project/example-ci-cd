@@ -38,9 +38,6 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Build docker image
-        run: ./gradlew buildDockerImage
-
       - name: Configure docket authn
         run: gcloud auth configure-docker
 
