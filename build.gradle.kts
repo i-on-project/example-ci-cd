@@ -11,6 +11,8 @@ group = "com.example"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
+val imageName = "eu.gcr.io/i-on-dev/example-ci-cd"
+
 repositories {
 	mavenCentral()
 }
@@ -33,8 +35,13 @@ tasks.register<Copy>("extractUberJar") {
 
 tasks.register<Exec>("buildDockerImage") {
 	dependsOn("extractUberJar")
-	val imageName: String by project
 	commandLine("docker", "build", "-t", imageName, ".")
+}
+
+tasks.register<Exec>("pushDockerImageToGcp") {
+	dependsOn("buildDockerImage")
+	commandLine("docker", "tag", imageName, "$imageName:latest")
+	commandLine("docker", "push", "$imageName:latest")
 }
 
 tasks.withType<Test> {
