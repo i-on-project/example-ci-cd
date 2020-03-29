@@ -6,7 +6,7 @@ on:
       - experiment0
 
 env:
-  PROJECT_ID: ${{ secrets.RUN_PROJECT }}
+  PROJECT_ID: i-on-dev
   RUN_REGION: europe-west1
   SERVICE_NAME: example-ci-cd
 
