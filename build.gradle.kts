@@ -12,6 +12,7 @@ version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 val imageName = "eu.gcr.io/i-on-dev/example-ci-cd"
+val tagName: String by project
 
 repositories {
 	mavenCentral()
@@ -40,8 +41,8 @@ tasks.register<Exec>("buildDockerImage") {
 
 tasks.register<Exec>("pushDockerImageToGcp") {
 	dependsOn("buildDockerImage")
-	commandLine("docker", "tag", imageName, "$imageName:latest")
-	commandLine("docker", "push", "$imageName:latest")
+	commandLine("docker", "tag", imageName, "$imageName:$tagName")
+	commandLine("docker", "push", "$imageName:$tagName")
 }
 
 tasks.withType<Test> {

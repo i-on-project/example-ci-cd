@@ -45,4 +45,11 @@ jobs:
         run: gcloud auth configure-docker
 
       - name: Push image
-        run: ./gradlew pushDockerImageToGcp
+        run: ./gradlew pushDockerImageToGcp -PtagName=$GITHUB_SHA
+
+      - name: Deploy to cloud run
+          run: |
+            gcloud run deploy $SERVICE_NAME \
+              --region $RUN_REGION \
+              --image eu.gcr.io/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA \
+              --platform managed
