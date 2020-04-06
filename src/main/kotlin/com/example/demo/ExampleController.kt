@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RestController
 class ExampleController {
 
     @GetMapping(produces = ["text/plain"])
-    fun get() = "Hello Web, from Cloud Run"
+    fun get() = "Hello Web, from Cloud Run, meeting demo"
 }
