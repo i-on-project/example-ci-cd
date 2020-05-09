@@ -3,7 +3,7 @@ name: Build and deploy on Cloud Run
 on:
   push:
     branches:
-      - env0
+      - envs-0
 
 env:
   PROJECT_ID: i-on-dev
