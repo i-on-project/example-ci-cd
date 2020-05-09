@@ -1,9 +1,9 @@
-name: Java CI
+name: Build and deploy on Cloud Run
 
 on:
   push:
     branches:
-      - experiment0
+      - env0
 
 env:
   PROJECT_ID: i-on-dev
