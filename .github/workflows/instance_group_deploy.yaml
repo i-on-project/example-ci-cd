@@ -8,7 +8,6 @@ on:
 env:
   PROJECT_ID: i-on-dev
   RUN_REGION: europe-west1
-  PROJECT_ZONE: europe-west2-c
   SERVICE_NAME: example-ci-cd
   INSTANCE_GROUP_NAME: instance-group-1
 
@@ -49,7 +48,5 @@ jobs:
       - name: Deploy to cloud run
         run: |
           gcloud compute instance-groups managed rolling-action restart $INSTANCE_GROUP_NAME \
-            --project $PROJECT_ID \
-            --zone $PROJECT_ZONE \
             --max-unavailable 20% \
             >/dev/null
