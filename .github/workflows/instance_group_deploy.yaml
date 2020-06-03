@@ -48,5 +48,6 @@ jobs:
       - name: Deploy to cloud run
         run: |
           gcloud compute instance-groups managed rolling-action restart $INSTANCE_GROUP_NAME \
+            --region $RUN_REGION \
             --max-unavailable 20% \
             >/dev/null
