@@ -1,0 +1,55 @@
+name: Build and deploy on Cloud Run
+
+on:
+  push:
+    branches:
+      - ig-deploy
+
+env:
+  PROJECT_ID: i-on-dev
+  RUN_REGION: europe-west1
+  PROJECT_ZONE: europe-west2-c
+  SERVICE_NAME: example-ci-cd
+  INSTANCE_GROUP_NAME: instance-group-1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      # Setup gcloud CLI
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: '286.0.0'
+          service_account_email: ${{ secrets.SA_EMAIL }}
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS}}
+
+      # Configure gcloud CLI
+      - name: gcloud set up
+        run: |
+          gcloud config set project $PROJECT_ID
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Configure docket authn
+        run: gcloud auth configure-docker
+
+      - name: Push image
+        run: ./gradlew pushDockerImageToGcp -PtagName=$GITHUB_SHA
+
+      - name: Deploy to cloud run
+        run: |
+          gcloud compute instance-groups managed rolling-action restart $INSTANCE_GROUP_NAME \
+            --project $PROJECT_ID \
+            --zone $PROJECT_ZONE \
+            --max-unavailable 20% \
+            >/dev/null
