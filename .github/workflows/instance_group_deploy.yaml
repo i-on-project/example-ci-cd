@@ -10,7 +10,7 @@ env:
   RUN_REGION: europe-west1
   SERVICE_NAME: example-ci-cd
   IMAGE_NAME: core-release-img
-  GCP_INSTANCE: host-1
+  GCP_INSTANCE: core-instance
   GCP_INSTANCE_ZONE: europe-west2-c
   GCP_REPO: eu.gcr.io
 
