@@ -1,0 +1,63 @@
+name: Build and deploy on Cloud Run
+
+on:
+  push:
+    branches:
+      - release
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJ_ID }}
+  RUN_REGION: europe-west1
+  IMAGE_NAME: core-img
+  INSTANCE_GROUP: core-instances
+  GCP_REPO: eu.gcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      # Setup gcloud CLI
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: '286.0.0'
+          service_account_email: ${{ secrets.GCP_EMAIL }}
+          service_account_key: ${{ secrets.GCP_KEY }}
+
+      # Configure gcloud CLI
+      - name: gcloud set up
+        run: |
+          gcloud config set project $PROJECT_ID
+
+      - name: Configure docker GCP remote
+        run: gcloud auth configure-docker
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Build with Gradle
+        run: ./gradlew assemble
+
+      - name: Rebuild docker image
+        run: docker build -t $IMAGE_NAME .
+
+      - name: Tag image
+        run: |
+          docker tag $IMAGE_NAME $GCP_REPO/$PROJECT_ID/$IMAGE_NAME:gh-$GITHUB_SHA &&\
+            docker tag $IMAGE_NAME $GCP_REPO/$PROJECT_ID/$IMAGE_NAME:latest
+
+      - name: Push image
+        run: docker push $GCP_REPO/$PROJECT_ID/$IMAGE_NAME
+
+      - name: Issue an update to MIG
+        run: |
+          yes | gcloud beta compute instance-groups managed rolling-action restart $INSTANCE_GROUP \
+            --project $PROJECT_ID \
+            --region $RUN_REGION \
+            --min-ready 5m \
+            --max-unavailable 1
