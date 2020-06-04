@@ -12,6 +12,7 @@ env:
   IMAGE_NAME: core-release-img
   GCP_INSTANCE: host-1
   GCP_INSTANCE_ZONE: europe-west2-c
+  GCP_REPO: eu.gcr.io
 
 jobs:
   build:
