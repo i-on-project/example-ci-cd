@@ -1,4 +1,4 @@
-name: Build and deploy on Cloud Run
+name: Build and deploy
 
 on:
   push:
@@ -9,7 +9,9 @@ env:
   PROJECT_ID: i-on-dev
   RUN_REGION: europe-west1
   SERVICE_NAME: example-ci-cd
-  INSTANCE_GROUP_NAME: instance-group-1
+  IMAGE_NAME: core-release-img
+  GCP_INSTANCE: host-1
+  GCP_INSTANCE_ZONE: europe-west2-c
 
 jobs:
   build:
@@ -23,13 +25,12 @@ jobs:
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           version: '286.0.0'
-          service_account_email: ${{ secrets.SA_EMAIL }}
-          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS}}
+          service_account_email: ${{ secrets.GCP_EMAIL }}
+          service_account_key: ${{ secrets.GCP_KEY }}
 
       # Configure gcloud CLI
       - name: gcloud set up
-        run: |
-          gcloud config set project $PROJECT_ID
+        run: gcloud config set project $PROJECT_ID
 
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
@@ -37,17 +38,29 @@ jobs:
           java-version: 1.8
 
       - name: Build with Gradle
-        run: ./gradlew build
+        working-directory: demo
+        run: ./gradlew assemble
+
+      - name: Rebuild docker image
+        working-directory: demo
+        run: docker build -t $IMAGE_NAME .
 
       - name: Configure docket authn
+        working-directory: demo
         run: gcloud auth configure-docker
 
-      - name: Push image
-        run: ./gradlew pushDockerImageToGcp -PtagName=$GITHUB_SHA
-
-      - name: Deploy to cloud run
+      - name: Tag image
+        working-directory: demo
         run: |
-          gcloud compute instance-groups managed rolling-action restart $INSTANCE_GROUP_NAME \
-            --region $RUN_REGION \
-            --max-unavailable 20% \
-            >/dev/null
+          docker tag $IMAGE_NAME $GCP_REPO/$PROJECT_ID/$IMAGE_NAME:gh-$GITHUB_SHA &&\
+            docker tag $IMAGE_NAME $GCP_REPO/$PROJECT_ID/$IMAGE_NAME:latest
+
+      - name: Push image
+        working-directory: demo
+        run: docker push $GCP_REPO/$PROJECT_ID/$IMAGE_NAME
+
+      - name: Deploy
+        run: |-
+          gcloud compute instances update-container "$GCP_INSTANCE" \
+            --zone "$GCP_INSTANCE_ZONE" \
+            --container-image "$GCP_REPO/$PROJECT_ID/$IMAGE_NAME:gh-$GITHUB_SHA"
